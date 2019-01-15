@@ -1,0 +1,2 @@
+This repository holds all of my work for Ph21 at Caltech. Each set's work
+should all be contained within its own directory.
