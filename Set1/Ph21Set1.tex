@@ -1,4 +1,4 @@
-% Created 2019-01-14 Mon 17:07
+% Created 2019-01-14 Mon 17:38
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -208,7 +208,7 @@ plt.title('Light Curves Around Her X-1 at r = .1, String-Parsed')
 plt.show()
 \end{minted}
 
-\includegraphics[width=.9\linewidth]{./obipy-resources/17087juc.png}
+\includegraphics[width=.9\linewidth]{./obipy-resources/17087KNv.png}
 
 
 \section*{Parsing the data from the XML file in VOTable Format:}
@@ -218,7 +218,7 @@ Now we can get the VOtable XML data from online and use the voparser to parser
 the data in a much easier fashion:
 
 \begin{minted}[frame=lines,fontsize=\scriptsize]{python}
-votable = parse("Documents/Ph21/result_web_fileDR8owK.vot", pedantic=False)
+votable = parse("result_web_fileDR8owK.vot", pedantic=False)
 vo_data = votable.get_first_table().to_table()
 \end{minted}
 
@@ -274,7 +274,7 @@ plt.title('Light Curves Around Her X-1 at r = .1, Vo-Parsed')
 plt.show()
 \end{minted}
 
-\includegraphics[width=.9\linewidth]{./obipy-resources/17087w4i.png}
+\includegraphics[width=.9\linewidth]{./obipy-resources/17087XX1.png}
 
 
 
