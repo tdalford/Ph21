@@ -243,7 +243,7 @@ vo_data = votable.get_first_table().to_table()
 
 #+RESULTS:
 :RESULTS:
-# Out[34]:
+# Out[15]:
 :END:
 
 #+BEGIN_SRC ipython :session  kernel-38218.json :exports both :results raw drawer
@@ -252,7 +252,7 @@ vo_data
 
 #+RESULTS:
 :RESULTS:
-# Out[328]:
+# Out[16]:
 #+BEGIN_EXAMPLE
   <Table masked=True length=378>
   MasterID    RAJ2000  DEJ2000  ObsTime [1]  Mag [1]   Magerr [1] Blend [1]
@@ -292,7 +292,7 @@ vo_MJDs = np.array(vo_data['ObsTime'])
 
 #+RESULTS:
 :RESULTS:
-# Out[309]:
+# Out[17]:
 :END:
 
 ** Plotting the VOTable Data
@@ -307,8 +307,8 @@ plt.show()
 
 #+RESULTS:
 :RESULTS:
-# Out[363]:
-[[file:./obipy-resources/17087w4i.png]]
+# Out[18]:
+[[file:./obipy-resources/17087XX1.png]]
 :END:
 
 
