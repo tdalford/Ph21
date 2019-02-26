@@ -90,7 +90,22 @@ smooth function centered at 10 for the Fourier coefficients of $\tilde{H}(x)$.
 
 For example, let's say $h^{(1)}(x) = x^2$ and plot H.
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
+from astropy.stats import LombScargle
+from astropy.io.votable import parse
+import numpy as np
+import scipy
+from scipy.signal import lombscargle
+import matplotlib.pyplot as plt
+%matplotlib inline
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# Out[107]:
+:END:
+
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 X = np.linspace(-30, 30, 1000)
 plt.figure(figsize=(10, 5))
 plt.plot(X, X ** 2, label = 'h1_k')
@@ -106,8 +121,8 @@ plt.show()
 
 #+RESULTS:
 :RESULTS:
-# Out[327]:
-[[file:./obipy-resources/17087KBx.png]]
+# Out[17]:
+[[file:./obipy-resources/333Doe.png]]
 :END:
 
 
@@ -116,21 +131,8 @@ plt.show()
 We'll create a cosine function $C + A cos(2 \pi f t + \phi)$, with $f = f_k =
 \frac{k}{L}$, with $L = 10, k = 5, C = 2, A = 3, \phi = \frac{\pi}{2}$.
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
-from astropy.io.votable import parse
-import numpy as np
-import scipy
-from scipy.signal import lombscargle
-import matplotlib.pyplot as plt
-%matplotlib inline
-#+END_SRC
 
-#+RESULTS:
-:RESULTS:
-# Out[206]:
-:END:
-
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 def cosine(t, C, A, k, L, phi):
     return C + A * np.cos(2 * np.pi * (k / L) * t + phi)
 
@@ -146,8 +148,8 @@ plt.show()
 
 #+RESULTS:
 :RESULTS:
-# Out[281]:
-[[file:./obipy-resources/17087I4u.png]]
+# Out[18]:
+[[file:./obipy-resources/333Qyk.png]]
 :END:
 
 Here it looks like we do have 5 periods in every interval of 10.
@@ -170,7 +172,7 @@ So here, it looks like we only get coefficients at frequencies of $\frac{1}{2},
 
 Now let's check these values with numpy's fft:
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 def fft_and_freq(Y, d):
     fft = np.fft.fft(Y) / len(Y)
     freqs = np.fft.fftfreq(len(Y), d)
@@ -182,19 +184,19 @@ def ifft(fftY, l):
 
 #+RESULTS:
 :RESULTS:
-# Out[51]:
+# Out[19]:
 :END:
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 cosfft, cosfreqs = fft_and_freq(Y, (X[1] - X[0]))
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-# Out[52]:
+# Out[20]:
 :END:
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 plt.plot(cosfreqs, np.abs(cosfft), '.')
 plt.xlim([-1, 1])
 plt.xlabel('Frequency')
@@ -205,11 +207,11 @@ plt.show()
 
 #+RESULTS:
 :RESULTS:
-# Out[284]:
-[[file:./obipy-resources/17087UWK.png]]
+# Out[21]:
+[[file:./obipy-resources/333d8q.png]]
 :END:
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 plt.plot(X, ifft(cosfft, len(Y)))
 plt.xlabel('x')
 plt.ylabel('y')
@@ -219,14 +221,14 @@ plt.show()
 
 #+RESULTS:
 :RESULTS:
-# Out[291]:
-[[file:./obipy-resources/17087vd1.png]]
+# Out[22]:
+[[file:./obipy-resources/333qGx.png]]
 :END:
 
 Here the inverse again gives us the same thing we had before. Now let's do the
 same thing for the Gaussian function:
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 def gaussian(t, A, B, L):
     return A * np.exp(-B * ((t - L / 2) ** 2))
 
@@ -242,30 +244,57 @@ plt.show()
 
 #+RESULTS:
 :RESULTS:
-# Out[286]:
-[[file:./obipy-resources/17087uqW.png]]
+# Out[23]:
+[[file:./obipy-resources/333cQA.png]]
 :END:
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+Finding the coefficients again in Mathematia, we see:
+
+$$\text{h2}(\text{x$\_$})\text{:=}A e^{-B \left(x-\frac{L}{2}\right)^2}$$
+$$\text{args2}=\{A\to 3,B\to 2,L\to 10\};$$
+
+$$\text{coefsGaussian}=\left| \text{Table}[N[\text{hk}(a,\text{h2})\text{/.}\,
+\text{args2}],\{a,-10,10\}]\right|$$
+
+$$\{0.00270411,0.00690595,0.0159794,0.0334992,0.0636275,0.109494,$$ \\ 
+$$0.170717,0.241155,0.308642,0.35789,0.375994,0.35789,0.308642,0.241155,0.170717,$$ \\
+$$0.109494,0.0636275,0.0334992,0.0159794,0.00690595,0.00270411\}$$
+
+Now, checking these in numpy, we get:
+
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
+mathematica_coefs = [0.00270411, 0.00690595, 0.0159794, 0.0334992, 0.0636275,
+                    0.109494, 0.170717, 0.241155, 0.308642, 0.35789, 0.375994,
+                    0.35789, 0.308642, 0.241155, 0.170717, 0.109494, 0.0636275,
+                    0.0334992, 0.0159794, 0.00690595, 0.00270411]
+mathematica_freqs = (1/10.) * np.linspace(-10, 10, 21)
+
 gaussfft, gaussfreqs = fft_and_freq(Yg, (Xg[1] - Xg[0]))
-plt.plot(gaussfreqs, np.abs(gaussfft), '.')
-plt.xlim([-5, 5])
-plt.xlabel('Frequency')
-plt.ylabel('FFT Magnitude')
-plt.title('Fourier Transformed Gaussian')
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
+
+ax1.plot(gaussfreqs, np.abs(gaussfft), '.')
+ax1.set_title('Fourier Transformed Gaussian')
+
+ax2.plot(mathematica_freqs, mathematica_coefs, '.', color='red')
+ax2.set_title('Analytical Fourier Coefficients')
+
+for ax in [ax1, ax2]:
+    ax.set_xlabel('Frequency')
+    ax.set_ylabel('FFT Magnitude')
+    ax.set_xlim([-5, 5])
 plt.show()
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-# Out[287]:
-[[file:./obipy-resources/1708770c.png]]
+# Out[140]:
+[[file:./obipy-resources/333SQD.png]]
 :END:
 
 Here we do see that the Fourier transform of our Gaussian is indeed another
-Gaussian.
+Gaussian. And the normalizations do line up with our analytical coefficients.
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 plt.plot(Xg, ifft(gaussfft, len(Yg)))
 plt.xlabel('x')
 plt.ylabel('y')
@@ -275,8 +304,8 @@ plt.show()
 
 #+RESULTS:
 :RESULTS:
-# Out[289]:
-[[file:./obipy-resources/17087VJp.png]]
+# Out[37]:
+[[file:./obipy-resources/3332rA.png]]
 :END:
 
 So here we also find the inverse giving us the same function.
@@ -285,16 +314,16 @@ So here we also find the inverse giving us the same function.
 
 ** (1)
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 dataset1 = np.genfromtxt("/Users/tommyalford/Documents/Ph21/Set2/arecibo1.txt")
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-# Out[60]:
+# Out[38]:
 :END:
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 plt.plot(dataset1)
 plt.ylabel('Data')
 plt.xlabel('Index (Time / .001 ms)')
@@ -304,23 +333,23 @@ plt.show()
 
 #+RESULTS:
 :RESULTS:
-# Out[315]:
-[[file:./obipy-resources/17087JHe.png]]
+# Out[39]:
+[[file:./obipy-resources/333D2G.png]]
 :END:
 
 Definitely looks pretty noisy here. Let's try ffting it.
 
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 set1fft, set1freqs = fft_and_freq(dataset1, d=.001)
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-# Out[87]:
+# Out[40]:
 :END:
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 plt.plot(set1freqs, np.abs(set1fft))
 plt.ylabel('FFT Magnitude')
 plt.xlabel('Frequency')
@@ -330,14 +359,14 @@ plt.show()
 
 #+RESULTS:
 :RESULTS:
-# Out[316]:
-[[file:./obipy-resources/17087WRk.png]]
+# Out[41]:
+[[file:./obipy-resources/333QAN.png]]
 :END:
 
 Here we clearly see most of the signal near the frequency of 150Hz. Let's zoom
 in on the data and then find this frequency more accurately:
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 plt.plot(set1freqs, np.abs(set1fft))
 plt.xlim([130, 150])
 plt.xlabel('Frequency')
@@ -348,17 +377,17 @@ plt.show()
 
 #+RESULTS:
 :RESULTS:
-# Out[296]:
-[[file:./obipy-resources/17087VQd.png]]
+# Out[42]:
+[[file:./obipy-resources/333dKT.png]]
 :END:
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 set1freqs[np.argmax(np.abs(set1fft))]
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-# Out[90]:
+# Out[43]:
 : 136.993408203125
 :END:
 
@@ -367,7 +396,7 @@ So, it looks like our signal has a frequency of 137 Hz!
 
 ** (2)
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 def gaussian_envelope(t, t0, deltat):
     return np.exp((-(t - t0) ** 2) / (2 * deltat) ** 2)
 
@@ -387,22 +416,22 @@ plt.show()
 
 #+RESULTS:
 :RESULTS:
-# Out[302]:
-[[file:./obipy-resources/170877CF.png]]
+# Out[44]:
+[[file:./obipy-resources/333qUZ.png]]
 :END:
 
 This looks right. Now we'll try Fourier transforming it to see what we get:
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 envfft, envfreqs = fft_and_freq(Y, d=.001)
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-# Out[145]:
+# Out[45]:
 :END:
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 plt.plot(envfreqs, np.abs(envfft))
 plt.title('Gaussian Envelope * Perfect Sinusoid, Transformed')
 plt.xlabel('Frequency')
@@ -412,14 +441,14 @@ plt.show()
 
 #+RESULTS:
 :RESULTS:
-# Out[304]:
-[[file:./obipy-resources/17087VXR.png]]
+# Out[46]:
+[[file:./obipy-resources/3333ef.png]]
 :END:
 
 Now we'll loop through a bunch of different $\Delta t$ values and plot
 superimpose plots of them over the original fft data.
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 # need to normalize so that our max magnitude is the same as the first
 # that way we can directly compare widths really
 max_mag = np.max(np.abs(set1fft))
@@ -441,20 +470,20 @@ for dt in dtvals:
 plt.legend()
 plt.title('Gaussian Envlopes of Varying dt, Arecibo1 Data in Frequency Domain') 
 plt.xlabel('Frequency (Hz)')
-plt.xlabel('FFT Magnitude')
+plt.ylabel('FFT Magnitude')
 plt.show()
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-# Out[308]:
-[[file:./obipy-resources/17087JAq.png]]
+# Out[47]:
+[[file:./obipy-resources/333Epl.png]]
 :END:
 
 Looks like $\Delta t = 1$ actually gives us a pretty close approximation. We
 can try some more values near that:
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 plt.figure(figsize=(10, 5))
 plt.plot(set1freqs, np.abs(set1fft))
 plt.xlim([133, 140])
@@ -465,15 +494,15 @@ plt.legend()
 plt.title('More Precise Gaussian Envlopes of Varying dt, Arecibo1 Data '
           'in Frequency Domain') 
 plt.xlabel('Frequency (Hz)')
-plt.xlabel('FFT Magnitude')
+plt.ylabel('FFT Magnitude')
 plt.xlim([136.5, 137.5])
 plt.show()
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-# Out[310]:
-[[file:./obipy-resources/17087jU2.png]]
+# Out[48]:
+[[file:./obipy-resources/333Rzr.png]]
 :END:
 
 This is pretty hard to tell at this point. Seems to be pretty close
@@ -485,24 +514,24 @@ to 1. Fitting using a real fit would be much more convienient.
 
 ** (1)
 
-We'll be trying out the scipy lombscargle algorithm.
+We'll be using the astopy lombscargle algorithm now.
 
 ** (2)
 *** Gaussian
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 # from before, we had Xg, Yg. Will take similar freqs here
-lomb_freqs = np.linspace(-5, 5, 1000)
-gausslomb = lombscargle(Xg, Yg, lomb_freqs)
+gauss_lomb_freqs, gausslomb = LombScargle(Xg, Yg, .01).autopower(
+    minimum_frequency=0.1, maximum_frequency=3)
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-# Out[270]:
+# Out[120]:
 :END:
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
-plt.plot(lomb_freqs, np.abs(gausslomb))
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
+plt.plot(gauss_lomb_freqs, np.abs(gausslomb))
 plt.xlabel('Frequency')
 plt.ylabel('Lomb-Scargel Coefficients')
 plt.title('Lomb-Scargle Transformed Gaussian Data')
@@ -511,24 +540,28 @@ plt.show()
 
 #+RESULTS:
 :RESULTS:
-# Out[311]:
-[[file:./obipy-resources/17087VeF.png]]
+# Out[121]:
+[[file:./obipy-resources/333Grz.png]]
 :END:
+
+Here we can still see the Gaussian behavior, just with a little bit of noise
+added in.
 
 *** Part II Data
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
-set1_lomb_freqs = np.linspace(.1, 200, 10000)
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 set1_times = np.arange(len(dataset1) * .001, step=.001)
-set1_lomb = lombscargle(set1_times, dataset1, set1_lomb_freqs)
+set1_lomb_freqs, set1_lomb = LombScargle(set1_times, dataset1, .01).autopower(
+    minimum_frequency=0.1, maximum_frequency=500)
+
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-# Out[204]:
+# Out[124]:
 :END:
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 plt.plot(set1_lomb_freqs, np.abs(set1_lomb))
 plt.xlabel('Frequency')
 plt.ylabel('Lomb-Scargle Coefficients')
@@ -538,14 +571,14 @@ plt.show()
 
 #+RESULTS:
 :RESULTS:
-# Out[313]:
-[[file:./obipy-resources/17087vyR.png]]
+# Out[125]:
+[[file:./obipy-resources/33340C.png]]
 :END:
 
-Looks like it's a lot harder to find this signal now..
+Here we can now find the 137 Hz signal as before!
 
 ** 3
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 votable = parse("/Users/tommyalford/Documents/Ph21/set1/result_web_fileDR8owK.vot", 
                 pedantic=False)
 vo_data = votable.get_first_table().to_table()
@@ -553,25 +586,10 @@ vo_data = votable.get_first_table().to_table()
 
 #+RESULTS:
 :RESULTS:
-# Out[208]:
+# Out[53]:
 :END:
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
-def plot_mag_data(mags, magerrs, MJDs):
-    plt.figure(figsize=(12, 5))
-    plt.errorbar(MJDs, mags, color='black', yerr=magerrs, fmt='o', markersize=3,
-                ecolor='r', capthick=2)
-    plt.gca().invert_yaxis()
-    plt.xlabel('Date (MJD)')
-    plt.ylabel('V mag')
-#+END_SRC
-
-#+RESULTS:
-:RESULTS:
-# Out[212]:
-:END:
-
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
 vo_mags = np.array(vo_data['Mag']).astype('float64')
 vo_errs = np.array(vo_data['Magerr']).astype('float64')
 vo_MJDs = np.array(vo_data['ObsTime']).astype('float64')
@@ -579,24 +597,28 @@ vo_MJDs = np.array(vo_data['ObsTime']).astype('float64')
 
 #+RESULTS:
 :RESULTS:
-# Out[249]:
+# Out[54]:
 :END:
 
-
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
-vo_lomb_freqs = np.linspace(.1, 20, 10000)
-vo_lomb = lombscargle(vo_mags.flatten(), vo_MJDs.flatten(), vo_lomb_freqs)
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
+# subtract mean from mag data
+mags = (vo_mags - np.mean(vo_mags)).flatten()
+days = (vo_MJDs).flatten()
+dy = .0001
+vo_freqs, vo_lomb = LombScargle(days, mags, dy, center_data=True).autopower(
+    minimum_frequency=.1, maximum_frequency=5.)
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-# Out[261]:
+# Out[154]:
 :END:
 
-#+BEGIN_SRC ipython :session  kernel-92027.json :exports both :results raw drawer
-plt.plot(vo_lomb_freqs, np.abs(vo_lomb), label='Lomb-Scargle Values')
-plt.plot(1000 * [1.7], np.linspace(0, 6e11, 1000), '--', label='1.7 MJD')
-plt.xlabel('Frequency')
+#+BEGIN_SRC ipython :session  kernel-21458.json :exports both :results raw drawer
+plt.plot(vo_freqs, vo_lomb, label='Lomb-Scargle Values')
+plt.plot(1000 * [1 / 1.7], np.linspace(0, np.max(vo_lomb), 1000),
+         '--', label='1 / 1.7 MJD')
+plt.xlabel('Frequency (cycles/day)')
 plt.ylabel('Lomb-Scargle Coefficients')
 plt.title('Lomb-Scargle Transformed Her X-1 Data')
 plt.legend()
@@ -605,10 +627,9 @@ plt.show()
 
 #+RESULTS:
 :RESULTS:
-# Out[314]:
-[[file:./obipy-resources/1708788X.png]]
+# Out[155]:
+[[file:./obipy-resources/333TKW.png]]
 :END:
 
 Here this might be the 1.7 MJD period that we want. Otherwise there are some
-significant beats near 5, 10, 15 MJD
-
+significant beats near frequencies of 2.5, 5, 10, 12.5, etc cylces per day.

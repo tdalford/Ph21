@@ -1,4 +1,4 @@
-% Created 2019-01-30 Wed 22:14
+% Created 2019-02-05 Tue 15:12
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -121,6 +121,17 @@ smooth function centered at 10 for the Fourier coefficients of $\tilde{H}(x)$.
 For example, let's say $h^{(1)}(x) = x^2$ and plot H.
 
 \begin{minted}[frame=lines,fontsize=\scriptsize]{python}
+from astropy.stats import LombScargle
+from astropy.io.votable import parse
+import numpy as np
+import scipy
+from scipy.signal import lombscargle
+import matplotlib.pyplot as plt
+%matplotlib inline
+\end{minted}
+
+
+\begin{minted}[frame=lines,fontsize=\scriptsize]{python}
 X = np.linspace(-30, 30, 1000)
 plt.figure(figsize=(10, 5))
 plt.plot(X, X ** 2, label = 'h1_k')
@@ -134,7 +145,7 @@ plt.title('Comparing Fourier Coefficients with a Delta Function Convolution')
 plt.show()
 \end{minted}
 
-\includegraphics[width=.9\linewidth]{./obipy-resources/17087KBx.png}
+\includegraphics[width=.9\linewidth]{./obipy-resources/333Doe.png}
 
 
 \subsection*{5}
@@ -142,15 +153,6 @@ plt.show()
 
 We'll create a cosine function $C + A cos(2 \pi f t + \phi)$, with $f = f_k =
 \frac{k}{L}$, with $L = 10, k = 5, C = 2, A = 3, \phi = \frac{\pi}{2}$.
-
-\begin{minted}[frame=lines,fontsize=\scriptsize]{python}
-from astropy.io.votable import parse
-import numpy as np
-import scipy
-from scipy.signal import lombscargle
-import matplotlib.pyplot as plt
-%matplotlib inline
-\end{minted}
 
 
 \begin{minted}[frame=lines,fontsize=\scriptsize]{python}
@@ -167,7 +169,7 @@ plt.title('Original cosine function')
 plt.show()
 \end{minted}
 
-\includegraphics[width=.9\linewidth]{./obipy-resources/17087I4u.png}
+\includegraphics[width=.9\linewidth]{./obipy-resources/333Qyk.png}
 
 Here it looks like we do have 5 periods in every interval of 10.
 First we'll find these coefficients analytically in Mathematica: 
@@ -214,7 +216,7 @@ plt.title('Fourier Transformed Cosine Function')
 plt.show()
 \end{minted}
 
-\includegraphics[width=.9\linewidth]{./obipy-resources/17087UWK.png}
+\includegraphics[width=.9\linewidth]{./obipy-resources/333d8q.png}
 
 \begin{minted}[frame=lines,fontsize=\scriptsize]{python}
 plt.plot(X, ifft(cosfft, len(Y)))
@@ -224,7 +226,7 @@ plt.title('Inverse Transform of Cosine FFT')
 plt.show()
 \end{minted}
 
-\includegraphics[width=.9\linewidth]{./obipy-resources/17087vd1.png}
+\includegraphics[width=.9\linewidth]{./obipy-resources/333qGx.png}
 
 Here the inverse again gives us the same thing we had before. Now let's do the
 same thing for the Gaussian function:
@@ -243,22 +245,49 @@ plt.title('Original Gaussian Function')
 plt.show()
 \end{minted}
 
-\includegraphics[width=.9\linewidth]{./obipy-resources/17087uqW.png}
+\includegraphics[width=.9\linewidth]{./obipy-resources/333cQA.png}
+
+Finding the coefficients again in Mathematia, we see:
+
+$$\text{h2}(\text{x$\_$})\text{:=}A e^{-B \left(x-\frac{L}{2}\right)^2}$$
+$$\text{args2}=\{A\to 3,B\to 2,L\to 10\};$$
+
+$$\text{coefsGaussian}=\left| \text{Table}[N[\text{hk}(a,\text{h2})\text{/.}\,
+\text{args2}],\{a,-10,10\}]\right|$$
+
+$$\{0.00270411,0.00690595,0.0159794,0.0334992,0.0636275,0.109494,$$ \\
+$$0.170717,0.241155,0.308642,0.35789,0.375994,0.35789,0.308642,0.241155,0.170717,$$ \\
+$$0.109494,0.0636275,0.0334992,0.0159794,0.00690595,0.00270411\}$$
+
+Now, checking these in numpy, we get:
 
 \begin{minted}[frame=lines,fontsize=\scriptsize]{python}
+mathematica_coefs = [0.00270411, 0.00690595, 0.0159794, 0.0334992, 0.0636275,
+                    0.109494, 0.170717, 0.241155, 0.308642, 0.35789, 0.375994,
+                    0.35789, 0.308642, 0.241155, 0.170717, 0.109494, 0.0636275,
+                    0.0334992, 0.0159794, 0.00690595, 0.00270411]
+mathematica_freqs = (1/10.) * np.linspace(-10, 10, 21)
+
 gaussfft, gaussfreqs = fft_and_freq(Yg, (Xg[1] - Xg[0]))
-plt.plot(gaussfreqs, np.abs(gaussfft), '.')
-plt.xlim([-5, 5])
-plt.xlabel('Frequency')
-plt.ylabel('FFT Magnitude')
-plt.title('Fourier Transformed Gaussian')
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
+
+ax1.plot(gaussfreqs, np.abs(gaussfft), '.')
+ax1.set_title('Fourier Transformed Gaussian')
+
+ax2.plot(mathematica_freqs, mathematica_coefs, '.', color='red')
+ax2.set_title('Analytical Fourier Coefficients')
+
+for ax in [ax1, ax2]:
+    ax.set_xlabel('Frequency')
+    ax.set_ylabel('FFT Magnitude')
+    ax.set_xlim([-5, 5])
 plt.show()
 \end{minted}
 
-\includegraphics[width=.9\linewidth]{./obipy-resources/1708770c.png}
+\includegraphics[width=.9\linewidth]{./obipy-resources/333SQD.png}
 
 Here we do see that the Fourier transform of our Gaussian is indeed another
-Gaussian.
+Gaussian. And the normalizations do line up with our analytical coefficients.
 
 \begin{minted}[frame=lines,fontsize=\scriptsize]{python}
 plt.plot(Xg, ifft(gaussfft, len(Yg)))
@@ -268,7 +297,7 @@ plt.title('Inverse Transform of Gaussian FFT')
 plt.show()
 \end{minted}
 
-\includegraphics[width=.9\linewidth]{./obipy-resources/17087VJp.png}
+\includegraphics[width=.9\linewidth]{./obipy-resources/3332rA.png}
 
 So here we also find the inverse giving us the same function.
 
@@ -291,7 +320,7 @@ plt.title('Arecibo1 Data')
 plt.show()
 \end{minted}
 
-\includegraphics[width=.9\linewidth]{./obipy-resources/17087JHe.png}
+\includegraphics[width=.9\linewidth]{./obipy-resources/333D2G.png}
 
 Definitely looks pretty noisy here. Let's try ffting it.
 
@@ -309,7 +338,7 @@ plt.title('Transformed Arecibo1 Data')
 plt.show()
 \end{minted}
 
-\includegraphics[width=.9\linewidth]{./obipy-resources/17087WRk.png}
+\includegraphics[width=.9\linewidth]{./obipy-resources/333QAN.png}
 
 Here we clearly see most of the signal near the frequency of 150Hz. Let's zoom
 in on the data and then find this frequency more accurately:
@@ -323,7 +352,7 @@ plt.title('Fourier Transformed Arecibo1 Data')
 plt.show()
 \end{minted}
 
-\includegraphics[width=.9\linewidth]{./obipy-resources/17087VQd.png}
+\includegraphics[width=.9\linewidth]{./obipy-resources/333dKT.png}
 
 \begin{minted}[frame=lines,fontsize=\scriptsize]{python}
 set1freqs[np.argmax(np.abs(set1fft))]
@@ -357,7 +386,7 @@ plt.ylabel('y')
 plt.show()
 \end{minted}
 
-\includegraphics[width=.9\linewidth]{./obipy-resources/170877CF.png}
+\includegraphics[width=.9\linewidth]{./obipy-resources/333qUZ.png}
 
 This looks right. Now we'll try Fourier transforming it to see what we get:
 
@@ -374,7 +403,7 @@ plt.ylabel('FFT Magnitude')
 plt.show()
 \end{minted}
 
-\includegraphics[width=.9\linewidth]{./obipy-resources/17087VXR.png}
+\includegraphics[width=.9\linewidth]{./obipy-resources/3333ef.png}
 
 Now we'll loop through a bunch of different $\Delta t$ values and plot
 superimpose plots of them over the original fft data.
@@ -401,11 +430,11 @@ for dt in dtvals:
 plt.legend()
 plt.title('Gaussian Envlopes of Varying dt, Arecibo1 Data in Frequency Domain') 
 plt.xlabel('Frequency (Hz)')
-plt.xlabel('FFT Magnitude')
+plt.ylabel('FFT Magnitude')
 plt.show()
 \end{minted}
 
-\includegraphics[width=.9\linewidth]{./obipy-resources/17087JAq.png}
+\includegraphics[width=.9\linewidth]{./obipy-resources/333Epl.png}
 
 Looks like $\Delta t = 1$ actually gives us a pretty close approximation. We
 can try some more values near that:
@@ -421,12 +450,12 @@ plt.legend()
 plt.title('More Precise Gaussian Envlopes of Varying dt, Arecibo1 Data '
           'in Frequency Domain') 
 plt.xlabel('Frequency (Hz)')
-plt.xlabel('FFT Magnitude')
+plt.ylabel('FFT Magnitude')
 plt.xlim([136.5, 137.5])
 plt.show()
 \end{minted}
 
-\includegraphics[width=.9\linewidth]{./obipy-resources/17087jU2.png}
+\includegraphics[width=.9\linewidth]{./obipy-resources/333Rzr.png}
 
 This is pretty hard to tell at this point. Seems to be pretty close
 to 1. Fitting using a real fit would be much more convienient.
@@ -440,7 +469,7 @@ to 1. Fitting using a real fit would be much more convienient.
 \subsection*{(1)}
 \label{sec-3-1}
 
-We'll be trying out the scipy lombscargle algorithm.
+We'll be using the astopy lombscargle algorithm now.
 
 \subsection*{(2)}
 \label{sec-3-2}
@@ -449,28 +478,31 @@ We'll be trying out the scipy lombscargle algorithm.
 
 \begin{minted}[frame=lines,fontsize=\scriptsize]{python}
 # from before, we had Xg, Yg. Will take similar freqs here
-lomb_freqs = np.linspace(-5, 5, 1000)
-gausslomb = lombscargle(Xg, Yg, lomb_freqs)
+gauss_lomb_freqs, gausslomb = LombScargle(Xg, Yg, .01).autopower(
+    minimum_frequency=0.1, maximum_frequency=3)
 \end{minted}
 
 
 \begin{minted}[frame=lines,fontsize=\scriptsize]{python}
-plt.plot(lomb_freqs, np.abs(gausslomb))
+plt.plot(gauss_lomb_freqs, np.abs(gausslomb))
 plt.xlabel('Frequency')
 plt.ylabel('Lomb-Scargel Coefficients')
 plt.title('Lomb-Scargle Transformed Gaussian Data')
 plt.show()
 \end{minted}
 
-\includegraphics[width=.9\linewidth]{./obipy-resources/17087VeF.png}
+\includegraphics[width=.9\linewidth]{./obipy-resources/333Grz.png}
+
+Here we can still see the Gaussian behavior, just with a little bit of noise
+added in.
 
 \subsubsection*{Part II Data}
 \label{sec-3-2-2}
 
 \begin{minted}[frame=lines,fontsize=\scriptsize]{python}
-set1_lomb_freqs = np.linspace(.1, 200, 10000)
 set1_times = np.arange(len(dataset1) * .001, step=.001)
-set1_lomb = lombscargle(set1_times, dataset1, set1_lomb_freqs)
+set1_lomb_freqs, set1_lomb = LombScargle(set1_times, dataset1, .01).autopower(
+    minimum_frequency=0.1, maximum_frequency=500)
 \end{minted}
 
 
@@ -482,9 +514,9 @@ plt.title('Lomb-Scargle Transformed Arecibo1 Data')
 plt.show()
 \end{minted}
 
-\includegraphics[width=.9\linewidth]{./obipy-resources/17087vyR.png}
+\includegraphics[width=.9\linewidth]{./obipy-resources/33340C.png}
 
-Looks like it's a lot harder to find this signal now..
+Here we can now find the 137 Hz signal as before!
 
 \subsection*{3}
 \label{sec-3-3}
@@ -496,43 +528,36 @@ vo_data = votable.get_first_table().to_table()
 
 
 \begin{minted}[frame=lines,fontsize=\scriptsize]{python}
-def plot_mag_data(mags, magerrs, MJDs):
-    plt.figure(figsize=(12, 5))
-    plt.errorbar(MJDs, mags, color='black', yerr=magerrs, fmt='o', markersize=3,
-                ecolor='r', capthick=2)
-    plt.gca().invert_yaxis()
-    plt.xlabel('Date (MJD)')
-    plt.ylabel('V mag')
-\end{minted}
-
-
-\begin{minted}[frame=lines,fontsize=\scriptsize]{python}
 vo_mags = np.array(vo_data['Mag']).astype('float64')
 vo_errs = np.array(vo_data['Magerr']).astype('float64')
 vo_MJDs = np.array(vo_data['ObsTime']).astype('float64')
 \end{minted}
 
 
-
 \begin{minted}[frame=lines,fontsize=\scriptsize]{python}
-vo_lomb_freqs = np.linspace(.1, 20, 10000)
-vo_lomb = lombscargle(vo_mags.flatten(), vo_MJDs.flatten(), vo_lomb_freqs)
+# subtract mean from mag data
+mags = (vo_mags - np.mean(vo_mags)).flatten()
+days = (vo_MJDs).flatten()
+dy = .0001
+vo_freqs, vo_lomb = LombScargle(mags, days, dy, center_data=True).autopower(
+    minimum_frequency=.1, maximum_frequency=20.)
 \end{minted}
 
 
 \begin{minted}[frame=lines,fontsize=\scriptsize]{python}
-plt.plot(vo_lomb_freqs, np.abs(vo_lomb), label='Lomb-Scargle Values')
-plt.plot(1000 * [1.7], np.linspace(0, 6e11, 1000), '--', label='1.7 MJD')
-plt.xlabel('Frequency')
+plt.plot(vo_freqs, vo_lomb, label='Lomb-Scargle Values')
+plt.plot(1000 * [1 / 1.7], np.linspace(0, np.max(vo_lomb), 1000),
+         '--', label='1.7 MJD')
+plt.xlabel('Frequency (cycles/day)')
 plt.ylabel('Lomb-Scargle Coefficients')
 plt.title('Lomb-Scargle Transformed Her X-1 Data')
 plt.legend()
 plt.show()
 \end{minted}
 
-\includegraphics[width=.9\linewidth]{./obipy-resources/1708788X.png}
+\includegraphics[width=.9\linewidth]{./obipy-resources/333srD.png}
 
 Here this might be the 1.7 MJD period that we want. Otherwise there are some
-significant beats near 5, 10, 15 MJD
+significant beats near frequencies of 2.5, 5, 10, 12.5, etc cylces per day.
 % Emacs 25.2.1 (Org mode 8.2.10)
 \end{document}
