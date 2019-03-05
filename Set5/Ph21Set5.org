@@ -5,7 +5,7 @@
 #+LATEX_HEADER: \setlength{\parskip}{\baselineskip}
 #+OPTIONS: toc:nil
 #+OPTIONS: num:nil
-#+TITLE: Ph21 Problem Set 4
+#+TITLE: Ph21 Problem Set 5
 * Problem 1
 ** Imports
 #+BEGIN_SRC ipython :session  kernel-689.json :exports both :results raw drawer
@@ -54,7 +54,8 @@ log-likelihood between samples at which we stop. So, smaller values result in
 more iterations.
 
 #+BEGIN_SRC ipython :session  kernel-689.json :exports both :results raw drawer
-def plot_H_probs(real_H, sampler_results, prior_func, dlogz, **prior_kwargs):
+def plot_H_probs(real_H, sampler_results, prior_func, dlogz, nlive, 
+                 ,**prior_kwargs):
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 7))
     ax1.plot(sampler_results.samples, np.exp(sampler_results.logl), '.',
             label='n=1024')
@@ -70,14 +71,14 @@ def plot_H_probs(real_H, sampler_results, prior_func, dlogz, **prior_kwargs):
     #ax2.set_xlabel('H')
     ax2.set_ylabel('sample density')
 
-    plt.suptitle('Posterior probabilities of H with real H = %s and '
-                 'dlogz = %s' % (real_H, dlogz))
+    plt.suptitle('Posterior probabilities of H with real H=%s, '
+                 'dlogz=%s, nlive=%s' % (real_H, dlogz, nlive))
     fig.text(0.5, 0.04, 'Number of Heads', ha='center')
     #fig.text(0.04, 0.5, 'Posterior Density', va='center', rotation='vertical')
     plt.subplots_adjust(top=0.9, hspace=.6)
     plt.show()
 
-def get_and_plot_H(H, prior_func, dlogz_val, **prior_kwargs):
+def get_and_plot_H(H, prior_func, dlogz_val, nlive_val, **prior_kwargs):
     sum_val, nval = get_H_vals(H)
 
     def loglike(H):
@@ -87,12 +88,12 @@ def get_and_plot_H(H, prior_func, dlogz_val, **prior_kwargs):
         return u
 
     ndim = 1
-    sampler = dynesty.DynamicNestedSampler(loglike, ptform, ndim,
-                                           bound='single', nlive=50) 
+    sampler = dynesty.NestedSampler(loglike, ptform, ndim,
+                                           bound='single', nlive=nlive_val) 
 
-    sampler.run_nested(dlogz_init=dlogz_val, print_progress=False)
+    sampler.run_nested(dlogz=dlogz_val, print_progress=False)
     results = sampler.results
-    plot_H_probs(H, results, prior_func, dlogz_val, **prior_kwargs)
+    plot_H_probs(H, results, prior_func, dlogz_val, nlive_val, **prior_kwargs)
     return results.samples[-1, 0]
     
 def uniform_prior(H):
@@ -101,7 +102,7 @@ def uniform_prior(H):
 
 #+RESULTS:
 :RESULTS:
-# Out[344]:
+# Out[367]:
 :END:
 
 *** Uniform Priors
@@ -109,13 +110,13 @@ def uniform_prior(H):
 **** Testing Nlive
 
 #+BEGIN_SRC ipython :session  kernel-689.json :exports both :results raw drawer
-maxL = get_and_plot_H(.5, uniform_prior, 1)
+maxL = get_and_plot_H(.5, uniform_prior, 1, 10)
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-# Out[38]:
-[[file:./obipy-resources/692k2F.png]]
+# Out[368]:
+[[file:./obipy-resources/692Tys.png]]
 :END:
 
 #+BEGIN_SRC ipython :session  kernel-689.json :exports both :results output
@@ -123,18 +124,18 @@ print(maxL)
 #+END_SRC
 
 #+RESULTS:
-: 0.4853515938554689
+: 0.47604769589713536
 
-Now let's try doing this for a lower value of dlogz:
+Now let's try doing this for some higher value of nlive:
 
 #+BEGIN_SRC ipython :session  kernel-689.json :exports both :results raw drawer
-maxL = get_and_plot_H(.8, uniform_prior, .01)
+maxL = get_and_plot_H(.5, uniform_prior, 1, 25)
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-# Out[41]:
-[[file:./obipy-resources/692xAM.png]]
+# Out[372]:
+[[file:./obipy-resources/692SGC.png]]
 :END:
 
 #+BEGIN_SRC ipython :session  kernel-689.json :exports both :results output
@@ -142,8 +143,71 @@ print(maxL)
 #+END_SRC
 
 #+RESULTS:
-: 0.7929687534700439
+: 0.497895669562484
 
+#+BEGIN_SRC ipython :session  kernel-689.json :exports both :results raw drawer
+maxL = get_and_plot_H(.5, uniform_prior, 1, 50)
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# Out[374]:
+[[file:./obipy-resources/692fQI.png]]
+:END:
+
+#+BEGIN_SRC ipython :session  kernel-689.json :exports both :results raw drawer
+maxL
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# Out[375]:
+: 0.5139972296763047
+:END:
+
+#+BEGIN_SRC ipython :session  kernel-689.json :exports both :results raw drawer
+maxL = get_and_plot_H(.5, uniform_prior, 1, 500)
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# Out[376]:
+[[file:./obipy-resources/692saO.png]]
+:END:
+
+#+BEGIN_SRC ipython :session  kernel-689.json :exports both :results raw drawer
+maxL
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# Out[377]:
+: 0.5029426514479755
+:END:
+
+Now we'll look at a smaller value of dlogz:
+
+#+BEGIN_SRC ipython :session  kernel-689.json :exports both :results raw drawer
+maxL = get_and_plot_H(.5, uniform_prior, .1, 500)
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# Out[385]:
+[[file:./obipy-resources/692gDn.png]]
+:END:
+
+#+BEGIN_SRC ipython :session  kernel-689.json :exports both :results raw drawer
+maxL
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# Out[386]:
+: 0.5107393662844353
+:END:
+
+Here we're getting pretty close now to the actual value of H.
 Now we can start working non-uniform priors:
 
 *** Gaussian Priors
@@ -159,36 +223,36 @@ def gaussian(x, mu=0, sigma=1, C=1):
 :END:
 
 #+BEGIN_SRC ipython :session  kernel-689.json :exports both :results raw drawer
-get_and_plot_H(.5, gaussian, .1, mu=.5, sigma=.25)
-plt.show()
+get_and_plot_H(.5, gaussian, .1, 500, mu=.5, sigma=.25)
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-# Out[45]:
-[[file:./obipy-resources/692-KS.png]]
+# Out[390]:
+: 0.5039108982035918
+[[file:./obipy-resources/6926Xz.png]]
 :END:
 
 #+BEGIN_SRC ipython :session  kernel-689.json :exports both :results raw drawer
-get_and_plot_H(.7, gaussian, .1, mu=.5, sigma=.25)
-plt.show()
+get_and_plot_H(.7, gaussian, .1, 500, mu=.5, sigma=.25)
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-# Out[46]:
-[[file:./obipy-resources/692LVY.png]]
+# Out[391]:
+: 0.704096061543153
+[[file:./obipy-resources/692shC.png]]
 :END:
 
 #+BEGIN_SRC ipython :session  kernel-689.json :exports both :results raw drawer
-get_and_plot_H(.7, gaussian, .1, mu=.3, sigma=.1)
+get_and_plot_H(.7, gaussian, .1, 500, mu=.3, sigma=.1)
 #+END_SRC
 
 #+RESULTS:
 :RESULTS:
-# Out[47]:
-: 0.7128881085635415
-[[file:./obipy-resources/692Yfe.png]]
+# Out[392]:
+: 0.6943432292672936
+[[file:./obipy-resources/6925rI.png]]
 :END:
 
 * Problem 2
@@ -196,7 +260,8 @@ get_and_plot_H(.7, gaussian, .1, mu=.3, sigma=.1)
 
 ** Methods from Previous Set 
 
-#+BEGIN_SRC ipython :session  kernel-689.json :exports both :results raw drawer
+#+BEGIN_SRC ipython :session  kernel-689.json :exports both :re
+sults raw drawer
 def rand_angle(size=None):
     return np.random.random(size=size) * np.pi - np.pi / 2
 
@@ -271,6 +336,8 @@ def plot_runplot(results):
 :RESULTS:
 # Out[292]:
 :END:
+
+We'll stick with an nlive value of 500 and a dlogz value of .01:
 
 #+BEGIN_SRC ipython :session  kernel-689.json :exports both :results raw drawer
 def get_grid_posts(n, alpha, beta, dlogz_val=.1, interloper=False, d=1):
@@ -384,6 +451,16 @@ plot_lighthouse_corner(interloper_results)
 [[file:./obipy-resources/692fJU.png]]
 :END:
 
+#+BEGIN_SRC ipython :session  kernel-689.json :exports both :results raw drawer
+plot_runplot(interloper_results)
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# Out[393]:
+[[file:./obipy-resources/692G2O.png]]
+:END:
+
 Here we see that it's pretty hard to actually splot this interloper
 here. Instead the \alpha and \beta values are just in-between the two values of
 the original lighthouse and interloper.
@@ -409,6 +486,16 @@ plot_lighthouse_corner(larger_interloper_results)
 :RESULTS:
 # Out[358]:
 [[file:./obipy-resources/692sTa.png]]
+:END:
+
+#+BEGIN_SRC ipython :session  kernel-689.json :exports both :results raw drawer
+plot_runplot(larger_interloper_results)
+#+END_SRC
+
+#+RESULTS:
+:RESULTS:
+# Out[394]:
+[[file:./obipy-resources/692TAV.png]]
 :END:
 
 Here we also are unable to find this interloper. Even weirder is the fact that
